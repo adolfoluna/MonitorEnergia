@@ -1,0 +1,12 @@
+<server xmlns="urn:jboss:service:7.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:jboss:service:7.0 jboss-service_7_0.xsd">
+
+   <mbean code="sme.modem.service.ModemLocalService"
+		   name="sme.modem.service.ModemLocalServiceMBean:service=ServicioModems">
+		
+<!-- 		<attribute name="Time">60000</attribute> -->
+		
+	</mbean>
+
+</server>

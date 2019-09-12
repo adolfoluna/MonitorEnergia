@@ -1,0 +1,52 @@
+
+
+Para configurar la RED Celular
+-----------------------------------------------------------
+Listar los operadores disponibles
+AT+COPS=?
+
+Inscribirse a la red por medio del numero identificador 310260
+AT+COPS=1,2,"310260"
+
+Inscribirse a la red por medio de nombre de la red
+AT+COPS=1,1,"T-Mobile" 
+
+Status del registro de la RED
+AT+CREG?
+-----------------------------------------------------------
+
+Comandos de SMS
+-----------------------------------------------------------
+Configurar que los SMS se envien como TEXTO
+AT+CMGF=1
+
+Configurar que avise el modem cuando llegue un TEXTO nuevo
+AT+CNMI=1,1
+
+Enviar SMS 
+AT+CMGS="+5216641518045"
+HOLA ctr+z
+
+Leer SMS almacenado en el registro 1
+AT+CMGR=1
+
+Borrar SMS alacenado en el registro 3
+AT+CMGD=3
+
+-----------------------------------------------------------
+
+Comandos de llamadas
+-----------------------------------------------------------
+Habilitar que este enviando notificaciones de llamadas
+AT+UCALLSTAT=1
+
+Hacer llamada
+ATD+5216641518045;
+
+Colgar llamada
+ATH
+
+Contestar llamda
+ATA
+-----------------------------------------------------------
+

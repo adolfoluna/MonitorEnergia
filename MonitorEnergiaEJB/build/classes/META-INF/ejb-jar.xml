@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ejb-jar version="3.1" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd">
+	<enterprise-beans>
+		
+        <message-driven>
+            <ejb-name>SMEMonitoreoRespuestasMDB</ejb-name>
+            <ejb-class>sme.ejb.queue.SMEMonitoreoRespuestasMDB</ejb-class>
+            <transaction-type>Container</transaction-type>
+            <activation-config>
+                <activation-config-property>
+                    <activation-config-property-name>maxSession</activation-config-property-name>
+                    <activation-config-property-value>500</activation-config-property-value>
+                </activation-config-property>
+            </activation-config>
+            <env-entry>
+                <env-entry-name>actualizar_nodos_sin_fecha</env-entry-name>
+                <env-entry-type>java.lang.Boolean</env-entry-type>
+                <env-entry-value>false</env-entry-value>
+      	    </env-entry>
+        </message-driven>
+        <!--
+        <session> 
+		
+			<ejb-name>MonitoreoNodos</ejb-name>
+			<ejb-class>sme.ejb.ops.MonitoreoNodos</ejb-class>
+			<session-type>Singleton</session-type>
+			
+			<timer>
+				<schedule>
+					<second>0</second>
+					<minute>*</minute>
+					<hour>*</hour>
+				</schedule>
+			    <timeout-method> 
+			       <method-name>monitoreo</method-name>
+			     </timeout-method>
+			     <persistent>false</persistent>
+			</timer>
+			
+			<env-entry>
+				< Numero de nodos a consultar cada ves que se ejcute el timer >
+				<env-entry-name>limiteNodos</env-entry-name>
+				<env-entry-type>java.lang.Integer</env-entry-type>
+				<env-entry-value>10</env-entry-value>
+			</env-entry>
+			
+			<env-entry>
+				< Minimo numero de segundos que tiene el nodo de no monitorearse >
+				<env-entry-name>segundosMonitoreo</env-entry-name>
+				<env-entry-type>java.lang.Integer</env-entry-type>
+				<env-entry-value>60</env-entry-value>
+			</env-entry>
+			
+       </session>
+       -->
+ 	</enterprise-beans>     
+ </ejb-jar>

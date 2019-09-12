@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: lib/jSerialComm-2.4.0.jar
+Dependencies: org.jboss.as.controller-client, org.jboss.dmr
+
