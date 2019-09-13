@@ -20,6 +20,7 @@ public class NodoSMSParser {
 		
 		NodoStatusNotification ns = new NodoStatusNotification();
 		
+		//actualizar el numero de telefono
 		ns.setNumero(numero);
 		
 		//extraer los estados de CFE y UPS
@@ -30,15 +31,23 @@ public class NodoSMSParser {
 		
 		//si el mensaje tiene la leyenda AS seguido de uno o mas digitos
 		//significa que hay que notificar a el nodo con un mensaje de Recibi
-		if( msg.matches(".+AS\\d+.+") ) 
+		if( msg.matches(".+MA\\d+.+") || msg.matches(".+LA\\d+.+") ) 
 			ns.setNotificarStatus(true);
 		
+		//extraer la fecha del mensaje y asignarla al objeto notificacion
 		ns.setNotificationDate(extractMessageDate(msg));
+		
+		//extraer la fecha en que ocurrio el evento de conexion o desconexion
 		ns.setStatusDate(extractStatusDate(msg));
 		
+		//extraer el numero de mensaje, en caso de no haberlo se asigna el 0
+		ns.setNumeroMensaje(extractMessageNumber(msg));
+		
+		//si las fechas no se podieron extraer entonces regresar null
 		if( ns.getStatusDate() == null || ns.getNotificationDate() == null )
 			return null;
 		
+		//si no se pudo determinar si hubo conexion o desconexion de cfe y ups entonces regresar null
 		if( ns.getCfePresente() == null || ns.getUpsPresente() == null )
 			return null;
 		
@@ -116,6 +125,28 @@ public class NodoSMSParser {
 			log.error("error al intentar convertir texto:->"+fecha+"<- a fecha "+e.getMessage());
 			return null;
 		}
+	}
+	
+	private static int extractMessageNumber(String text) {
+		
+        final Pattern pattern = Pattern.compile("(.+),(\\d[A-Z][A-Z])(\\d\\d)");
+        final Matcher matcher = pattern.matcher(text);
+	
+		//si no se encuentra el patron regresar nulo
+        if( !matcher.find() || matcher.groupCount() < 3 ) {
+            log.info("no se encontro numero de mensaje, poniendo el 0.............");
+            return 0;
+        }
+        
+        //el grupo 3 es el que tiene el numero de mensaje, intentar convertirlo a numero entero
+        try {
+        	return Integer.valueOf(matcher.group(3));
+        }catch(NumberFormatException ex) {
+        	log.error("error al intentar convertir el texto \""+matcher.group(3)+"\" a numero entero");
+        }
+        
+        //salir regresando 0
+		return 0;
 	}
 	
 

@@ -17,6 +17,8 @@ public class NodoStatusNotification implements Serializable {
 	private Boolean upsPresente;
 	private Date statusDate;
 	private boolean notificarStatus;
+	private int numeroMensaje;
+	
 	
 	public NodoStatusNotification() {
 		
@@ -31,6 +33,7 @@ public class NodoStatusNotification implements Serializable {
 		this.upsPresente = upsPresente;
 		this.statusDate = fecha;
 		this.notificarStatus = notificarStatus;
+		this.numeroMensaje = 0;
 	}
 
 	public NodoStatusNotification(String numero, Boolean cfePresente, Boolean upsPresente,Date fecha) {
@@ -39,6 +42,7 @@ public class NodoStatusNotification implements Serializable {
 		this.cfePresente = cfePresente;
 		this.upsPresente = upsPresente;
 		this.statusDate = fecha;
+		this.numeroMensaje = 0;
 	}
 	
 
@@ -81,6 +85,7 @@ public class NodoStatusNotification implements Serializable {
 				+" ups:"+upsPresente
 				+" fecha estatus:"+format.format(statusDate)
 				+" fecha mensaje:"+format.format(notificationDate)
+				+" num mensaje:"+numeroMensaje
 				+" notificar:"+notificarStatus;
 	}
 
@@ -98,5 +103,13 @@ public class NodoStatusNotification implements Serializable {
 
 	public void setNotificationDate(Date notificationDate) {
 		this.notificationDate = notificationDate;
+	}
+
+	public int getNumeroMensaje() {
+		return numeroMensaje;
+	}
+
+	public void setNumeroMensaje(int numeroMensaje) {
+		this.numeroMensaje = numeroMensaje;
 	}
 }

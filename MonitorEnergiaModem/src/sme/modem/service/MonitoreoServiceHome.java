@@ -137,9 +137,12 @@ public class MonitoreoServiceHome implements CellPhoneModuleSMSListener, Monitor
 		queue.write(ns);
 		
 		//si hay que mandar un mensaje de notificacion, hacerlo, iniciando un nuevo proceso
-		if(ns.isNotificarStatus()) {
+		if( ns.isNotificarStatus() ) {
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-			new CellPhoneModuleSMSSender(cellPhoneModuleService, "Recibi "+format.format(new Date()), phoneNumber);
+			if( ns.getNumeroMensaje() < 10 )
+				new CellPhoneModuleSMSSender(cellPhoneModuleService, "Recibi0"+ns.getNumeroMensaje()+" "+format.format(new Date()), phoneNumber);
+			else
+				new CellPhoneModuleSMSSender(cellPhoneModuleService, "Recibi"+ns.getNumeroMensaje()+" "+format.format(new Date()), phoneNumber);
 		}
 			
 	}
