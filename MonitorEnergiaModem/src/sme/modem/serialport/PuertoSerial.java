@@ -96,6 +96,8 @@ public class PuertoSerial implements SerialPortDataListener {
 			//en terminos practicos el NO abir existosamente el puerto, significa que se cerro
 			if( conClosedListener != null )
 				conClosedListener.puertoSerialConnectionClosed();
+			else
+				log.info("no hay listener para notificar el cierre del puerto serial al intentar abrir puerto........");
 			
 			return false;
 		}
@@ -130,6 +132,8 @@ public class PuertoSerial implements SerialPortDataListener {
 		//disparar evento indicando que el puerto se cerro
 		if( conClosedListener != null )
 			conClosedListener.puertoSerialConnectionClosed();
+		else
+			log.info("no hay listener para notificar el cierre del puerto serial........");
 
 	}
 
@@ -140,7 +144,7 @@ public class PuertoSerial implements SerialPortDataListener {
 			log.error("error, intentando escribir a un puerto que no esta abierto "+portName);
 			return false;
 		}
-		
+
 		//intentar escribir al puerto, en caso de ser exitoso regresar true
 		if( serialport.writeBytes(buffer, buffer.length) > 0 )
 			return true;

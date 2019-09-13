@@ -36,6 +36,9 @@ public class PuertoSerialMediaCommWatch implements Runnable, PuertoSerialConnect
 				//crear nueva instancia de puerto serial
 				puerto = new PuertoSerialMediaComm();
 				
+				//indicar que se va a intentar abrir el puerto
+				log.info("intentando abrir puerto "+params.getPortName()+"....................");
+				
 				//intentar abrir puerto y guardar bandera que indica si se abrio exitosamente
 				opened = puerto.open(params);
 				
@@ -57,7 +60,7 @@ public class PuertoSerialMediaCommWatch implements Runnable, PuertoSerialConnect
 			
 			//esperar a que el puerto serial sea cerrado
 			while(active && opened) {
-				log.info("esperando a que puerto tenga un error o se cierre "+params.getPortName());
+				log.info("esperando evento de cierre de puerto "+params.getPortName());
 				synchronized (this) {
 					try {
 						wait();
@@ -66,6 +69,8 @@ public class PuertoSerialMediaCommWatch implements Runnable, PuertoSerialConnect
 					}
 				}
 			}
+			
+			log.info("evento de cierre de puerto ocurrido "+params.getPortName());
 		}
 		
 		log.info("fin de proceso para monitorear puerto serial "+params.getPortName()+"....");

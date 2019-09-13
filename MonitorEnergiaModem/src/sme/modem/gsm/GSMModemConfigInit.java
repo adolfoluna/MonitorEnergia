@@ -13,6 +13,8 @@ public class GSMModemConfigInit implements Runnable {
 	private boolean active = true;
 	private GSMModemConfigInitListener listener;
 	
+	private static final long timeWaitOnError = 20_000;
+	
 	public GSMModemConfigInit(GSMModemWithCommands modem,GSMModemConfigInitListener listener) {
 		this.modem = modem;
 		this.listener = listener;
@@ -32,7 +34,7 @@ public class GSMModemConfigInit implements Runnable {
 			}
 			
 			//intentar seleccionar el operador
-			while(active && modem.getMediaComm() != null && i>3) {
+			while(active && modem.getMediaComm() != null && i > 3) {
 				
 				//si se pudo seleccionar el operador salir de rutina
 				if(seleccionarOperador()) {
@@ -101,8 +103,14 @@ public class GSMModemConfigInit implements Runnable {
 		//enviar el comando de configuracion
 		GSMModemCommandResponse res = modem.sendCommand(cmd,5_000);
 		
+		//si hubo un error en el puerto serial entonces esperar 10 segundos y salir
+		if( res == null ) {
+			try { Thread.sleep(timeWaitOnError); } catch(Exception ex) { }
+			return i;
+		}
+				
 		//si el modem respondio con un OK significa que el comando se ejecuto exitosamente
-		if( res != null && res.isResponseComplete() && res.getResponse().contains("OK") )
+		if( res.isResponseComplete() && res.getResponse().contains("OK") )
 			return i+1;
 		
 		log.error("comando "+cmd+" no pudo ser completado");
@@ -125,11 +133,17 @@ public class GSMModemConfigInit implements Runnable {
 		//enviar comando para listar operadores
 		GSMModemCommandResponse res = modem.sendCommand("AT+COPS=?\r\n",60_000);
 		
+		//si hubo un error en el puerto serial entonces esperar 10 segundos y salir
+		if( res == null ) {
+			try { Thread.sleep(timeWaitOnError); } catch(Exception ex) { }
+			return false;
+		}
+		
 		//si no ha llegado ninguna respuesta significa que se quedo buscando
-		if( res == null  || res.getResponse() == null ) {
-			
+		if( res.getResponse() == null ) {
+
 			//interrumpir la busqueda de operadores
-			res = modem.sendCommand("\r\n\"",5_000);
+			res = modem.sendCommand("\r\n",5_000);
 			
 			//volver al inicio del ciclo, para nuevamente solicitar lista de operadores
 			return false;
