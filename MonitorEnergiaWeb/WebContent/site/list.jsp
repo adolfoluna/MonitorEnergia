@@ -150,6 +150,7 @@
 			var obj = JSON.parse(event.data);
 			procesar_data(obj);
 	  		upsertRow(obj);
+	  		notificar(obj);
 		};
 
 		socket.onclose = function(event) {
