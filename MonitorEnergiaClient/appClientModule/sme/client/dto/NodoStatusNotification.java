@@ -78,17 +78,6 @@ public class NodoStatusNotification implements Serializable {
 		this.statusDate = fecha;
 	}
 
-	public String toString() {
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-		return "numero:"+numero
-				+" cfe:"+cfePresente
-				+" ups:"+upsPresente
-				+" fecha estatus:"+format.format(statusDate)
-				+" fecha mensaje:"+format.format(notificationDate)
-				+" num mensaje:"+numeroMensaje
-				+" notificar:"+notificarStatus;
-	}
-
 	public boolean isNotificarStatus() {
 		return notificarStatus;
 	}
@@ -111,5 +100,16 @@ public class NodoStatusNotification implements Serializable {
 
 	public void setNumeroMensaje(int numeroMensaje) {
 		this.numeroMensaje = numeroMensaje;
+	}
+	
+	public String toString() {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+		return "numero:"+numero
+				+" cfe:"+cfePresente
+				+" ups:"+upsPresente
+				+" fecha estatus:"+format.format(statusDate)
+				+" fecha mensaje:"+format.format(notificationDate)
+				+" num mensaje:"+numeroMensaje
+				+" notificar:"+notificarStatus;
 	}
 }

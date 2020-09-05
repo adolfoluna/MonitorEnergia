@@ -27,7 +27,7 @@ public class ModemLocalRestService {
 	@EJB
 	private ModemLocalRemote2 mr;
 	
-	private Log log = LogFactory.getLog(ModemLocalRestService.class);
+	private static final Log log = LogFactory.getLog(ModemLocalRestService.class);
 	
 	
 	@GET
