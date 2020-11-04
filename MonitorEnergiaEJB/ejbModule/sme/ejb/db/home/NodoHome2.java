@@ -1,10 +1,14 @@
 package sme.ejb.db.home;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import javax.ejb.EJB;
 import javax.ejb.Remote;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -87,8 +91,6 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 		return null;
 	}
 	
-	
-	
 	public Nodo findByNumber(String number) {
 		
 		try {
@@ -131,7 +133,7 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 			return false;
 		}
 		
-		if(aux.getCfePresente() != null && aux.getUpsPresente() != null )
+		if( aux.getCfePresente() != null && aux.getUpsPresente() != null )
 			historialRemote.insertHistorial(nodo.getIdnodo(), aux.getStatusDate(), aux.getCfePresente(), aux.getUpsPresente(),aux.getNotificationDate());
 		
 		if( soloStatusMasActual && aux.getStatusDate() == null ) {
@@ -170,6 +172,79 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 		}
 		
 		return true;
+	}
+	
+	public void updateNodoStatus(NodoStatusNotification aux) {
+	
+		if( aux.getNumero() == null) {
+			log.error("error, numero en nulo, descartando actualizacion de status");
+			return;
+		}
+		
+		//buscar el nodo por numero de cel
+		Nodo nodo  = findByNumber(aux.getNumero());
+		
+		//si no se encontro la entidad, salir
+		if( nodo == null ) {
+			log.info("nodo con numero "+aux.getNumero()+" no encontrado, descartando actualizacion de status");
+			return;
+		}
+		
+		//actualizar la fecha actual
+		nodo.setFechaMonitoreo(new Date());
+		
+		//si el estatus de CFE cambio, actualizar la fecha en que cambio el status
+		if( isCFEChanged(aux, nodo) ) {
+			nodo.setCfePresente(aux.getCfePresente());
+			nodo.setCfeFecha(aux.getStatusDate());
+			log.info("actualizando estatus de cfe....");
+		} else
+			log.info("estatus de cfe sin cambio........");
+		
+		//si el estatus de UPS cambio, actualizar la fecha en que cambio el status
+		if( isUPSChanged(aux, nodo) ) {
+			nodo.setUpsPresente(aux.getUpsPresente());
+			nodo.setUpsFecha(aux.getStatusDate());
+			log.info("actualizando estatus de ups....");
+		} else
+			log.info("estatos de ups sin cambio......");
+		
+		try {
+			//actualizar los campos en la base de datos
+			entityManager.persist(nodo);
+		}catch(Exception ex) {
+			log.error("error al intentar actualizar nodo "+nodo.getIdnodo()+" "+ex.getMessage());
+		}
+		
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+	public void updateMonitoreoDate(String numero) {
+		
+		//si el numero tiene mas de 10 digitos, eliminar los primeros digitos
+    	//que corresponden a la clave del pais
+    	if( numero.length() > 10 ) {
+    		int index = numero.length() - 10;
+    		if( index >= 0 )
+    			numero = numero.substring(index);
+    	}
+    	
+		//buscar el nodo por numero de cel
+		Nodo nodo  = findByNumber(numero);
+		
+		if( nodo == null ) {
+			log.info("nodo con numero "+numero+" no encontrado, descartando actualizacion de fecha");
+			return;
+		}
+		
+		nodo.setFechaMonitoreo(new Date());
+		
+		try {
+			entityManager.merge(nodo);
+		}catch(Exception ex) {
+			log.error("error al intentar actualizar nodo "+nodo.getIdnodo()+" "+ex.getMessage());
+		}
+		
 	}
 	
 	public void updateNodoDto(NodoDto nodo) {
@@ -215,7 +290,8 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 			//si hubo resultados, actualizarles la fecha de monitoreo
 			
 			//actualizar la fecha de monitoreo de todos los nodos que se acaban de consultar
-			if( lista != null && lista.size() > 0 ) {
+			////////////////////////////////////////////////////////////////////////////////
+			/*if( lista != null && lista.size() > 0 ) {
 				
 				String l = "";
 				
@@ -227,7 +303,7 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 				q = entityManager.createQuery("update Nodo n set n.fechaMonitoreo=now() where n.idnodo in("+l+")");
 							
 				q.executeUpdate();
-			}
+			}*/
 			/////////////////////////////////////////////////////////////////////////////////
 			
 			return lista;
@@ -358,5 +434,48 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 		d.setActivo(nodo.isActivo());
 		d.setVersion(nodo.getVersion());
 		websocketqueueRemote.write(d);
+	}
+	
+	private boolean isCFEChanged(NodoStatusNotification aux,Nodo nodo) {
+		
+		//si el status esta en null o la fecha del status esta en null entonces indicar que hay un cambio para forzar cambiar propiedades
+		if( nodo.getCfePresente() == null || nodo.getCfeFecha() == null)
+			return true;
+		
+		//fecha en base de datos es mas reciente que el status reportado, regresar fasle indicando que no hubo cambio
+		if( nodo.getCfeFecha().getTime() >=  aux.getStatusDate().getTime() ) {
+			log.info("fecha de estatus en cfe \""+formatDate(nodo.getCfeFecha())+"\" mas reciente que la fecha reportada \""+formatDate(aux.getStatusDate())+"\"");
+			return false;
+		}
+		
+		//si el status es igual al que esta en la base de datos entonces regresar false indicando que no hubo cambio en el status
+		if( nodo.getCfePresente().booleanValue() != aux.getCfePresente().booleanValue() )
+			return true;
+		else
+			return false;
+	}
+	
+	private boolean isUPSChanged(NodoStatusNotification aux,Nodo nodo) {
+		
+		//si el status esta en null o la fecha del status esta en null entonces indicar que hay un cambio para forzar cambiar propiedades
+		if( nodo.getUpsPresente() == null || nodo.getUpsFecha() == null)
+			return true;
+		
+		//fecha en base de datos es mas reciente que el status reportado, regresar fasle indicando que no hubo cambio
+		if( nodo.getUpsFecha().getTime() >=  aux.getStatusDate().getTime() ) {
+			log.info("fecha de estatus en ups \""+formatDate(nodo.getUpsFecha())+"\" mas reciente que la fecha reportada \""+formatDate(aux.getStatusDate())+"\"");
+			return false;
+		}
+		
+		//si el status es igual al que esta en la base de datos entonces regresar false indicando que no hubo cambio en el status
+		if( nodo.getUpsPresente().booleanValue() != aux.getUpsPresente().booleanValue() )
+			return true;
+		else
+			return false;
+	}
+	
+	private String formatDate(Date date) {
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return format.format(date);
 	}
 }

@@ -12,7 +12,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import sme.client.db.remote.ModemServiceManagerRemote;
+import sme.client.db.remote.ModemServiceManagerRemote2;
 import sme.client.dto.ModemLocalDto;
 import sme.web.dto.SendModemCommandDto;
 
@@ -23,8 +23,8 @@ import sme.web.dto.SendModemCommandDto;
 public class ModemManagerRestService {
 
 	
-	@EJB(lookup="java:global/MonitorEnergiaModemApp/MonitorEnergiaModem/ModemServiceManagerHome")
-	private ModemServiceManagerRemote mr;
+	@EJB(lookup="java:global/MonitorEnergiaModemApp/MonitorEnergiaModem/ModemServiceManagerHome2")
+	private ModemServiceManagerRemote2 mr;
 	
 	public ModemManagerRestService() {
 		

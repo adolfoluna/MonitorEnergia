@@ -28,13 +28,16 @@ public class GSMModemConfigInit implements Runnable {
 		
 		try {
 			
+			//enviar nueva linea para interrumpir cualquier comando en caso de que exista
+			modem.sendCommand("\r\n",5_000);
+			
 			//enviar los comandos de configuracion
-			while(active && modem.getMediaComm() != null && i <= 3 ) {
+			while(active && modem.getMediaComm() != null && i <= 5 ) {
 				i = init(i);
 			}
 			
 			//intentar seleccionar el operador
-			while(active && modem.getMediaComm() != null && i > 3) {
+			while(active && modem.getMediaComm() != null && i > 5) {
 				
 				//si se pudo seleccionar el operador salir de rutina
 				if(seleccionarOperador()) {
@@ -95,6 +98,14 @@ public class GSMModemConfigInit implements Runnable {
 			case 3:
 				msg = "configurando para que lleguen las notificaciones de llamadas..........";
 				cmd ="AT+UCALLSTAT=1\r\n";
+				break;
+			case 4:
+				msg = "configurando para que lleguen notificaciones DTMF.................";
+				cmd = "AT+UDTMFD=1,2\r\n";
+				break;
+			case 5:
+				msg = "configurando duracion de tomo en valor 10 (1 segundo)................";
+				cmd = "AT+VTD=10\r\n";
 				break;
 		}
 
@@ -161,7 +172,7 @@ public class GSMModemConfigInit implements Runnable {
 		if( temp.indexOf("\"334020\"") >= 0 ) {
 			log.info("intentando firmarse a la red de TELCEL........");
 			res = modem.sendCommand("AT+COPS=1,2,\"334020\"\r\n",30_000);
-		}
+		} 
 		
 		//red 310260 es T-MOBILE
 		if( temp.indexOf("\"310260\"") >= 0) {

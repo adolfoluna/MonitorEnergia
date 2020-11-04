@@ -15,7 +15,10 @@ public class CellPhoneModule implements GSMModemEventListener  {
 	
 	private CellPhoneModuleCallStatus callStatus = new CellPhoneModuleCallStatus(this);
 	private boolean sendingSMS = false;
+	
 	private CellPhoneModuleSMSListener listener;
+	private CellPhoneModuleCallStatusListener statusCallListener;
+	private CellPhoneModuleToneListener toneListener;
 	
 	private GSMModemWithCommands modem;
 	
@@ -65,6 +68,15 @@ public class CellPhoneModule implements GSMModemEventListener  {
 		
 		log.info("comando de llamada a "+number+" exitoso");
 	}
+	
+	public void hangupCall() {
+		new CellPhoneHandUpCall(this,false);
+	}
+	
+	public void sendTone(String toneNumber) {
+		//enviar el tono por medio segundo
+		modem.sendCommand("AT+VTS="+toneNumber+"\r\n", 3_000);
+	}
 
 	@Override
 	public void gsmModemEvent(String event) {
@@ -85,6 +97,13 @@ public class CellPhoneModule implements GSMModemEventListener  {
 				new CellPhoneModuleSMSReader(aux,modem,listener);
 			}
 		}
+		
+		if( event.startsWith("+UUDTMFD:") && toneListener != null ) {
+			String temp = event.replace("+UUDTMFD: ", " ");
+			temp = temp.replace('\n', ' ');
+			temp = temp.trim();
+			toneListener.toneDTMFDetected(temp);			
+		}
 	}
 	
 	public CellPhoneModuleCallStatus getCallStatus() {
@@ -101,6 +120,14 @@ public class CellPhoneModule implements GSMModemEventListener  {
 
 	public void setListener(CellPhoneModuleSMSListener listener) {
 		this.listener = listener;
+	}
+	
+	public void setStatusCallListener(CellPhoneModuleCallStatusListener listener) {
+		this.statusCallListener = listener;
+	}
+	
+	public void setToneListener(CellPhoneModuleToneListener listener) {
+		this.toneListener = listener;
 	}
 	
 
@@ -136,8 +163,10 @@ public class CellPhoneModule implements GSMModemEventListener  {
 		//actualizar el estatus con el evento de llamada que llego
 		int aux = callStatus.updateStatus(event);
 		
+		if( statusCallListener != null )
+			statusCallListener.callStatusChanged(CellPhoneModuleCallStatusEnum.fromNumber(aux));
 		//si el estatus es para contestar
-		if( aux == 4 ) {
+		/*if( aux == 4 ) {
 			
 			//si no hay llamada en progreso iniciar el proceso de contestar
 			if(!getCallStatus().isCallInProgress()) {
@@ -145,7 +174,7 @@ public class CellPhoneModule implements GSMModemEventListener  {
 				new CellPhoneAnswerCall(this);
 			} else 
 				log.info("llamada sin contestar debido a que esta ocupada la linea en otra llamada");
-		}
+		}*/
 		
 	}
 

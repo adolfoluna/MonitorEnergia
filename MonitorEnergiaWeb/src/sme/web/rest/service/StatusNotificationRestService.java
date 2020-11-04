@@ -16,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import sme.client.db.remote.NodoRemote2;
 import sme.client.dto.NodoStatusNotification;
 import sme.web.dto.NetworkNotificationStatusDto;
 import sme.web.dto.NotificationResultDto;
@@ -29,8 +30,11 @@ public class StatusNotificationRestService {
 
 	private static final Log log = LogFactory.getLog(StatusNotificationRestService.class);
 	
-	@EJB//(lookup="java:global/MonitorEnergiaModemApp/MonitorEnergiaModem/MonQueueReaderWriterHome")
+	@EJB
 	private MonQueueReaderWriterRemote queue;
+	
+	@EJB(lookup="java:global/MonitorEnergiaApp/MonitorEnergiaEJB/NodoHome2")
+	private NodoRemote2 nodoRemote;
 	
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -50,8 +54,15 @@ public class StatusNotificationRestService {
 			return new NotificationResultDto(false,"fecha de evento no presente o no se pudo determinar");
 		
 		//escribir la instancia generada en la cola
-		queue.write(ns);
+		//queue.write(ns);
+		
+		//actualizar la fecha de monitoreo del nodo
+		//nodoRemote.updateMonitoreoDate(status.getSme());
+		
+		//actualizar nodo y fecha de monitoreo
+		nodoRemote.updateNodoStatus(ns);
 			
+		//regresar mensaje de exito
 		return  new NotificationResultDto(true,null);
 	}
 	

@@ -25,5 +25,8 @@ public interface NodoRemote2 {
 	public int insertDto(NodoDto nodo);
 	
 	public void removeById(int idnodo);
+	
+	public void updateMonitoreoDate(String numero);
 
+	public void updateNodoStatus(NodoStatusNotification aux);
 }

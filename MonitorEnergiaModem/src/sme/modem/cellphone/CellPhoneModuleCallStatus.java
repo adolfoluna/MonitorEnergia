@@ -61,8 +61,8 @@ public class CellPhoneModuleCallStatus implements WaitTimeOutListener {
 		
 		//si la llamada acaba de ser activada entonces iniciar proceso para colgar llamada
 		//especificando que haga un delay de 2 segundos
-		if( eventn == 0 )
-			new CellPhoneHandUpCall(modem,true);
+		//if( eventn == 0 )
+		//	new CellPhoneHandUpCall(modem,true);
 		
 		return eventn;
 		
@@ -79,11 +79,11 @@ public class CellPhoneModuleCallStatus implements WaitTimeOutListener {
 		
 		this.callInProgress = callInProgress;
 
-		if( callInProgress) {
+		if( callInProgress ) {
 			log.info("estatus linea OCUPADA.................");
 			busylinetimer = new TimerWaitAsync();
 			busylinetimer.setWaitTimeOutListener(this);
-			busylinetimer.startWait(30_000);
+			busylinetimer.startWait(120_000);
 		}
 		else {
 			log.info("estatus linea LIBRE..............");
@@ -105,7 +105,7 @@ public class CellPhoneModuleCallStatus implements WaitTimeOutListener {
 		busylinetimer.stop();
 		busylinetimer = null;
 		
-		log.info("linea ocupada por mas de 30 segundos, iniciando proceso para colgar llamada.......");
+		log.info("linea ocupada por mas de 120 segundos, iniciando proceso para colgar llamada.......");
 		
 		new CellPhoneHandUpCall(modem,false);
 	}
