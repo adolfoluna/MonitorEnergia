@@ -193,6 +193,9 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 		//actualizar la fecha actual
 		nodo.setFechaMonitoreo(new Date());
 		
+		//actualizar la fecha en que se esta notificando
+		nodo.setFechaNotificacion(aux.getNotificationDate());
+		
 		//si el estatus de CFE cambio, actualizar la fecha en que cambio el status
 		if( isCFEChanged(aux, nodo) ) {
 			nodo.setCfePresente(aux.getCfePresente());
@@ -207,7 +210,7 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 			nodo.setUpsFecha(aux.getStatusDate());
 			log.info("actualizando estatus de ups....");
 		} else
-			log.info("estatos de ups sin cambio......");
+			log.info("estatus de ups sin cambio......");
 		
 		try {
 			//actualizar los campos en la base de datos
@@ -276,7 +279,7 @@ public class NodoHome2 extends NodoHome implements NodoRemote2 {
 		try {
 
 			//toma todos los nodos activos
-			Query q = entityManager.createQuery(getNodoDtoQuery()+" where activo is true and (n.fechaMonitoreo is NULL or (now()-n.fechaMonitoreo)>=:segundos)");
+			Query q = entityManager.createQuery(getNodoDtoQuery()+" where activo is true and (n.fechaMonitoreo is NULL or (now()-n.fechaMonitoreo)>=:segundos) order by (now()-n.fechaMonitoreo) desc");
 			q.setParameter("segundos",(double) segundos);
 			
 			//poner limite de resultados y numero de pagina

@@ -24,8 +24,13 @@ public class CellPhoneModuleCallStatus implements WaitTimeOutListener {
 		int eventn = -1;
 		
 		//extraer el digito que indica el status de la llamada
-		if(event.startsWith("+UCALLSTAT:"))
-			event = event.replaceFirst("\\+UCALLSTAT: \\d,", "");
+		//if(event.startsWith("+UCALLSTAT:"))
+		//	event = event.replaceFirst("\\+UCALLSTAT: \\d,", "");
+		if( event.indexOf("VOICE CALL: BEGIN") >= 0 )
+			event="0";
+		
+		if( event.indexOf("VOICE CALL: END") >= 0 )
+			event="6";
 		
 		if( event.indexOf("RING") >= 0 )
 			event = "4";
@@ -46,14 +51,14 @@ public class CellPhoneModuleCallStatus implements WaitTimeOutListener {
 			setCallInProgress(false);
 		
 		switch(eventn) {
-			case 0: log.info("llamada activa.........."); break;
-			case 1: log.info("llamada entrante en espera........"); break;
-			case 2: log.info("marcando......."); break;
-			case 3: log.info("sonando llamada saliente........"); break;
-			case 4: log.info("sonando llamada entrante........"); break;
-			case 5: log.info("llamada saliente en espera........"); break;
-			case 6: log.info("llamada desconectada......"); break;
-			case 7: log.info("conectado........"); break;
+			case 0: log.info("evento llamada activa.........."); break;
+			case 1: log.info("evento llamada entrante en espera........"); break;
+			case 2: log.info("evento marcando......."); break;
+			case 3: log.info("evento sonando llamada saliente........"); break;
+			case 4: log.info("evento sonando llamada entrante........"); break;
+			case 5: log.info("evento llamada saliente en espera........"); break;
+			case 6: log.info("evento llamada desconectada......"); break;
+			case 7: log.info("evento conectado........"); break;
 			default:
 				log.error("error, evento de llamada no reconocido evento:"+eventn);
 				break;
@@ -80,13 +85,13 @@ public class CellPhoneModuleCallStatus implements WaitTimeOutListener {
 		this.callInProgress = callInProgress;
 
 		if( callInProgress ) {
-			log.info("estatus linea OCUPADA.................");
+			log.info("cambio de estatus a linea OCUPADA.................");
 			busylinetimer = new TimerWaitAsync();
 			busylinetimer.setWaitTimeOutListener(this);
-			busylinetimer.startWait(120_000);
+			busylinetimer.startWait(90_000);
 		}
 		else {
-			log.info("estatus linea LIBRE..............");
+			log.info("cambio de estatus a linea LIBRE..............");
 			if(busylinetimer != null ) {
 				busylinetimer.stopWait();
 				busylinetimer.stop();

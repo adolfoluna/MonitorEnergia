@@ -32,12 +32,12 @@ public class GSMModemConfigInit implements Runnable {
 			modem.sendCommand("\r\n",5_000);
 			
 			//enviar los comandos de configuracion
-			while(active && modem.getMediaComm() != null && i <= 5 ) {
+			while(active && modem.getMediaComm() != null && i <= 4 ) {
 				i = init(i);
 			}
 			
 			//intentar seleccionar el operador
-			while(active && modem.getMediaComm() != null && i > 5) {
+			while(active && modem.getMediaComm() != null && i > 4) {
 				
 				//si se pudo seleccionar el operador salir de rutina
 				if(seleccionarOperador()) {
@@ -96,14 +96,18 @@ public class GSMModemConfigInit implements Runnable {
 				cmd = "AT+CNMI=1,1\r\n";
 				break;
 			case 3:
+				msg = "configurando para que se puedan colgar las llamadas con el comando ATH..........";
+				cmd ="AT+CVHU=0\r\n";
+				break;
+			/*case 3:
 				msg = "configurando para que lleguen las notificaciones de llamadas..........";
 				cmd ="AT+UCALLSTAT=1\r\n";
 				break;
 			case 4:
 				msg = "configurando para que lleguen notificaciones DTMF.................";
 				cmd = "AT+UDTMFD=1,2\r\n";
-				break;
-			case 5:
+				break;*/
+			case 4:
 				msg = "configurando duracion de tomo en valor 10 (1 segundo)................";
 				cmd = "AT+VTD=10\r\n";
 				break;

@@ -83,10 +83,10 @@ public class CellPhoneModule implements GSMModemEventListener  {
 		
 		int aux = 0;
 		
-		log.info("evento:"+event.replace("\r\n", "\\n"));
+		log.info("evento:"+event.replace("\r", "\\r").replace("\n", "\\n"));
 		
 		//eliminar las nuevas lineas si es que existen
-		event = event.replace("\r\n", " ").trim();
+		event = event.replace("\r", " ").replace("\n", " ").trim();
 		
 		handleCall(event);
 		
@@ -98,9 +98,9 @@ public class CellPhoneModule implements GSMModemEventListener  {
 			}
 		}
 		
-		if( event.startsWith("+UUDTMFD:") && toneListener != null ) {
-			String temp = event.replace("+UUDTMFD: ", " ");
-			temp = temp.replace('\n', ' ');
+		if( event.startsWith("+RXDTMF:") && toneListener != null ) {
+			String temp = event.replace("+RXDTMF: ", " ");
+			temp = temp.replace('\n', ' ').replace('\r', ' ');
 			temp = temp.trim();
 			toneListener.toneDTMFDetected(temp);			
 		}
@@ -157,7 +157,7 @@ public class CellPhoneModule implements GSMModemEventListener  {
 	private void handleCall(String event) {
 		
 		//si el evento no empieza con +UCALlSTAT o RING abandonar rutina
-		if( !event.startsWith("+UCALLSTAT:") && !event.startsWith("RING"))
+		if( !event.startsWith("VOICE CALL:") && !event.startsWith("RING"))
 			return; 
 		
 		//actualizar el estatus con el evento de llamada que llego

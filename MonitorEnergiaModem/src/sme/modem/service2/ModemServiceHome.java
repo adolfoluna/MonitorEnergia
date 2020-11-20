@@ -10,7 +10,6 @@ import org.apache.commons.logging.LogFactory;
 import sme.client.db.remote.NodoRemote2;
 import sme.client.dto.ModemLocalDto;
 import sme.client.dto.NodoDto;
-import sme.client.dto.NodoStatusNotification;
 import sme.modem.cellphone.CellPhoneModuleCallStatusEnum;
 import sme.modem.cellphone.CellPhoneModuleCallStatusListener;
 import sme.modem.cellphone.CellPhoneModuleFactory;
@@ -19,18 +18,17 @@ import sme.modem.cellphone.CellPhoneModuleService;
 import sme.modem.cellphone.CellPhoneModuleToneListener;
 import sme.modem.cellphone.CellPhoneToneSenderThread;
 import sme.modem.gsm.GSMModemCommandResponse;
-import sme.modem.service.NodoToneParser;
+
 
 @Stateless
 @Remote(ModemServiceRemote.class)
-public class ModemServiceHome implements CellPhoneModuleSMSListener, CellPhoneModuleCallStatusListener, CellPhoneModuleToneListener, ModemServiceRemote {
+public class ModemServiceHome implements CellPhoneModuleSMSListener, CellPhoneModuleCallStatusListener, CellPhoneModuleToneListener, ModemServiceRemote, ModemToneWaiterFinishedInterface {
 	
 	private static final Log log = LogFactory.getLog(ModemServiceHome.class);
 	
 	private CellPhoneModuleService cellPhoneModuleService;
 	
-	private NodoDto nodo = null;
-	private String respuesta = "";
+	private ModemToneWaiter toneWaiter = null;
 	
 	@EJB(lookup="java:global/MonitorEnergiaApp/MonitorEnergiaEJB/NodoHome2")
 	private NodoRemote2 nodoRemote;
@@ -78,23 +76,36 @@ public class ModemServiceHome implements CellPhoneModuleSMSListener, CellPhoneMo
 	@Override
 	public boolean isResourceAvailable() {
 		
-		//si el recurso esta ocupado regresar false
-		if( nodo != null || !cellPhoneModuleService.isInitialized() 
-			|| cellPhoneModuleService.getCellPhoneModule().isSendingSMS()
-			|| cellPhoneModuleService.getCellPhoneModule().getCallStatus().isCallInProgress() )
-			return false;
+		log.info("evaluando si recurso esta disponible....");
 		
+		if( toneWaiter != null ) {
+			log.info("recurso no disponible, proceso esperando por respuesta en tonos....");
+			return false;
+		}
+		
+		if( !cellPhoneModuleService.isInitialized() ) {
+			log.info("recurso no disponible, esperando a que se complete configuracion.....");
+			return false;
+		}
+		
+		if( cellPhoneModuleService.getCellPhoneModule().isSendingSMS() ) {
+			log.info("recurso no disponible, esperando a que se complete el envio de un sms.....");
+			return false;
+		}
+		
+		if( cellPhoneModuleService.getCellPhoneModule().getCallStatus().isCallInProgress() ) {
+			log.info("recurso no disponible, llamada en progreso.....");
+			return false;
+		}
+		
+		log.info("recurso disponible.....");
+		
+		//recurso disponible
 		return true;
 	}
 	
 	@Override
 	public void monitorNodeByCall(NodoDto nodo) {
-		
-		//guardar el nodo que se esta monitoreando
-		this.nodo = nodo;
-		
-		//borrar lo que hay en respuesta
-		respuesta = "";
 		
 		//tomar el numero al que se tiene que marcar
 		String temp = nodo.getNumero();
@@ -105,6 +116,9 @@ public class ModemServiceHome implements CellPhoneModuleSMSListener, CellPhoneMo
 		
 		//hacer la llamada
 		cellPhoneModuleService.getCellPhoneModule().makeCall(temp);
+		
+		//empezar a esperar por los tonos
+		toneWaiter = new ModemToneWaiter(nodo, this);
 	}
 
 	//ocurre cuando llega un sms 
@@ -120,52 +134,34 @@ public class ModemServiceHome implements CellPhoneModuleSMSListener, CellPhoneMo
 		
 		//si la llamada se acaba de conectar, enviar el comando 1 que significa que me de el ultimo status
 		if( status == CellPhoneModuleCallStatusEnum.ACTIVE ) {
-			CellPhoneToneSenderThread aux = new CellPhoneToneSenderThread(cellPhoneModuleService.getCellPhoneModule(), "1");
+			CellPhoneToneSenderThread aux = new CellPhoneToneSenderThread(cellPhoneModuleService.getCellPhoneModule(), "2");
 			new Thread(aux).start();
 		}
+
 	}
 
 	@Override
 	public void toneDTMFDetected(String digit) {
+		
 		log.info("tono detectado "+digit);
 		
-		switch(digit) {
+		if( toneWaiter != null )
+			toneWaiter.addTone(digit);
+		else
+			log.info("tono detectado pero no existe ningun proceso esperando tonos, descartando tono.....");
 		
-			case "#": 
-				respuesta = ""; 
-				break;
-				
-			case "*": 
-				
-				//colgar la llamada
-				cellPhoneModuleService.getCellPhoneModule().hangupCall();
-				
-				//analizar respuesta de tonos
-				analizarRespuesta(respuesta);
-				
-				break;
-				
-			default:
-				respuesta+=digit;
-				break;
-		}
 	}
-	
-	private void analizarRespuesta(String rx) {
+
+	//ocurre cuando se termina de esperar por los tonos de las llamadas
+	@Override
+	public void waitingToneDone() {
 		
-		log.info("analizando respuesta:\""+rx+"\" len:"+rx.length()+".....................");
+		//borrar la referencia porque ya se termino la espera
+		toneWaiter = null;
 		
-		NodoStatusNotification aux = NodoToneParser.parse(nodo, rx);
-		
-		//si se pudo parsear exitosamente la respuesta
-		if( aux != null ) {
-			log.info(aux);
-			nodoRemote.updateNodoStatus(aux);
-		}
-		
-		this.nodo = null;
-		this.respuesta = "";
-		
+		//colgar llamada en caso de que haya una llamada en progreso
+		if( cellPhoneModuleService.getCellPhoneModule().getCallStatus().isCallInProgress() )
+			cellPhoneModuleService.getCellPhoneModule().hangupCall();
 	}
 	
 }

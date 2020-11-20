@@ -125,7 +125,7 @@ public class GSMModem implements MediaCommDataListener, GSMModemBufferListener, 
 		eventWaiter.stopWait();
 				
 		//indicar evento en log
-		log.info("evento:"+event.replace("\r\n", "\\n"));
+		log.info("evento:"+event.replace("\r", "\\r").replace("\n", "\\n"));
 		
 		//disparar evento de que llego un evento al modem
 		if( glistener != null ) 
